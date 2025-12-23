@@ -29,56 +29,110 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/tvTimeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/time_selection"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/countdownView" />
+
+    <RadioGroup
+        android:id="@+id/radioGroupTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvTimeLabel">
+
+        <RadioButton
+            android:id="@+id/rb10min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/minutes_10"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="10dp" />
+
+        <RadioButton
+            android:id="@+id/rb20min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/minutes_20"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="10dp" />
+
+        <RadioButton
+            android:id="@+id/rb30min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/minutes_30"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="10dp" />
+
+        <RadioButton
+            android:id="@+id/rbCustom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/custom"
+            android:textColor="#FFFFFF" />
+    </RadioGroup>
+
     <Button
         android:id="@+id/btnStart"
         android:layout_width="120dp"
         android:layout_height="50dp"
-        android:layout_marginTop="40dp"
-        android:text="开始"
+        android:layout_marginTop="30dp"
+        android:text="@string/start"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/btnPause"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/countdownView" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupNoise" />
 
     <Button
         android:id="@+id/btnPause"
         android:layout_width="120dp"
         android:layout_height="50dp"
-        android:layout_marginTop="40dp"
-        android:text="暂停"
+        android:layout_marginTop="30dp"
+        android:text="@string/pause"
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/btnReset"
         app:layout_constraintStart_toEndOf="@+id/btnStart"
-        app:layout_constraintTop_toBottomOf="@+id/countdownView" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupNoise" />
 
     <Button
         android:id="@+id/btnReset"
         android:layout_width="120dp"
         android:layout_height="50dp"
-        android:layout_marginTop="40dp"
-        android:text="重置"
+        android:layout_marginTop="30dp"
+        android:text="@string/reset"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btnPause"
-        app:layout_constraintTop_toBottomOf="@+id/countdownView" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupNoise" />
 
     <TextView
         android:id="@+id/tvWhiteNoiseLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:text="白噪音"
+        android:layout_marginTop="30dp"
+        android:text="@string/white_noise"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnPause" />
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupTime" />
 
     <RadioGroup
         android:id="@+id/radioGroupNoise"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -90,7 +144,7 @@
             android:layout_height="wrap_content"
             android:text="@string/rain"
             android:textColor="#FFFFFF"
-            android:layout_marginEnd="20dp" />
+            android:layout_marginEnd="15dp" />
 
         <RadioButton
             android:id="@+id/rbWave"

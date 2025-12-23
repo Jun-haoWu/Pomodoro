@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Focus Flow</string>
     <string name="start">开始</string>
@@ -15,4 +16,14 @@
     <string name="sync_countdown_and_audio">是否同步倒计时和音频</string>
     <string name="yes">是</string>
     <string name="no">否</string>
+    <string name="set_custom_time">设置自定义时间</string>
+    <string name="enter_minutes">请输入分钟数：</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+    <string name="invalid_time_range">请输入1-120之间的数字</string>
+    <string name="time_selection">时间选择</string>
+    <string name="minutes_10">10分钟</string>
+    <string name="minutes_20">20分钟</string>
+    <string name="minutes_30">30分钟</string>
+    <string name="custom">自定义</string>
 </resources>

@@ -42,7 +42,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="说明：开启后，倒计时结束时音频将自动停止播放"
+        android:text="说明：开启后，倒计时暂停/停止时音频将同步暂停，倒计时开始时音频将同步恢复播放"
         android:textColor="#CCCCCC"
         android:textSize="12sp"
         android:layout_marginTop="8dp" />

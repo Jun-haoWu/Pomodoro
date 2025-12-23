@@ -160,35 +160,17 @@ class WhiteNoisePlayer(private val context: Context) {
     }
 }
 
-class SettingsActivity : AppCompatActivity() {
-    private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var switchSyncAudio: android.widget.Switch
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.settings_activity)
-        
-        sharedPreferences = getSharedPreferences("FocusFlowPrefs", Context.MODE_PRIVATE)
-        switchSyncAudio = findViewById(R.id.switchSyncAudio)
-        
-        // 加载保存的设置
-        val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
-        switchSyncAudio.isChecked = isSyncEnabled
-        
-        switchSyncAudio.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("sync_audio_with_timer", isChecked).apply()
-        }
-    }
-}
-
 class MainActivity : AppCompatActivity() {
     private lateinit var countdownView: CountdownView
     private lateinit var whiteNoisePlayer: WhiteNoisePlayer
     private var isRunning = false
-    private var remainingTime = 25 * 60
+    private var remainingTime = 30 * 60 // 默认30分钟
     private var timer: android.os.Handler? = null
     private var runnable: Runnable? = null
     private lateinit var sharedPreferences: SharedPreferences
+    private var currentTimeInMinutes = 30 // 当前选择的分钟数
+    private lateinit var rbRain: android.widget.RadioButton
+    private lateinit var rbWave: android.widget.RadioButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -207,10 +189,15 @@ class MainActivity : AppCompatActivity() {
         val btnPause = findViewById<android.widget.Button>(R.id.btnPause)
         val btnReset = findViewById<android.widget.Button>(R.id.btnReset)
         val btnSettings = findViewById<android.widget.ImageButton>(R.id.btnSettings)
-        val rbRain = findViewById<android.widget.RadioButton>(R.id.rbRain)
-        val rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
+        rbRain = findViewById(R.id.rbRain)
+        rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
+        val rb10min = findViewById<android.widget.RadioButton>(R.id.rb10min)
+        val rb20min = findViewById<android.widget.RadioButton>(R.id.rb20min)
+        val rb30min = findViewById<android.widget.RadioButton>(R.id.rb30min)
+        val rbCustom = findViewById<android.widget.RadioButton>(R.id.rbCustom)
 
-        // 设置默认选中的白噪音
+        // 设置默认选中的时间和白噪音
+        rb30min.isChecked = true
         rbRain.isChecked = true
 
         btnStart.setOnClickListener {
@@ -241,20 +228,54 @@ class MainActivity : AppCompatActivity() {
                 whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
             }
         }
+
+        // 时间选择监听器
+        rb10min.setOnClickListener {
+            if (rb10min.isChecked) {
+                setTimerDuration(10)
+            }
+        }
+
+        rb20min.setOnClickListener {
+            if (rb20min.isChecked) {
+                setTimerDuration(20)
+            }
+        }
+
+        rb30min.setOnClickListener {
+            if (rb30min.isChecked) {
+                setTimerDuration(30)
+            }
+        }
+
+        rbCustom.setOnClickListener {
+            if (rbCustom.isChecked) {
+                showCustomTimeDialog()
+            }
+        }
     }
 
     private fun startTimer() {
         if (!isRunning) {
             isRunning = true
             
-            // 自动播放选中的白噪音
-            val rbRain = findViewById<android.widget.RadioButton>(R.id.rbRain)
-            val rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
+            val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
             
-            if (rbRain.isChecked) {
-                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
-            } else if (rbWave.isChecked) {
-                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
+            if (isSyncEnabled) {
+                // 如果同步开启，先尝试恢复被暂停的音频
+                if (whiteNoisePlayer.isPlaying()) {
+                    // 如果已经在播放，不需要重新播放
+                } else {
+                    // 音频被暂停了，恢复播放
+                    whiteNoisePlayer.resume()
+                }
+            } else {
+                // 如果同步未开启，按原来的逻辑播放
+                if (rbRain.isChecked) {
+                    whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
+                } else if (rbWave.isChecked) {
+                    whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
+                }
             }
             
             timer = android.os.Handler(android.os.Looper.getMainLooper())
@@ -276,28 +297,95 @@ class MainActivity : AppCompatActivity() {
     private fun pauseTimer() {
         isRunning = false
         timer?.removeCallbacks(runnable!!)
-    }
-
-    private fun resetTimer() {
-        stopTimer()
-        remainingTime = 25 * 60
-        countdownView.setMaxTime(remainingTime)
+        
+        // 检查是否启用了同步音频功能
+        val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
+        if (isSyncEnabled) {
+            // 同步暂停音频
+            whiteNoisePlayer.pause()
+        }
     }
 
     private fun stopTimer() {
         isRunning = false
         timer?.removeCallbacks(runnable!!)
         
-        // 检查是否需要同步停止音频
+        // 检查是否启用了同步音频功能
         val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
-        if (isSyncEnabled && remainingTime == 0) {
+        if (isSyncEnabled) {
+            // 同步停止音频
             whiteNoisePlayer.stop()
         }
+    }
+
+    private fun setTimerDuration(minutes: Int) {
+        if (!isRunning) {
+            currentTimeInMinutes = minutes
+            remainingTime = minutes * 60
+            countdownView.setMaxTime(remainingTime)
+        }
+    }
+
+    private fun showCustomTimeDialog() {
+        val input = android.widget.EditText(this)
+        input.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        input.hint = "输入分钟数 (1-120)"
+        
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.set_custom_time))
+            .setMessage(getString(R.string.enter_minutes))
+            .setView(input)
+            .setPositiveButton(getString(R.string.confirm)) { _, _ ->
+                val minutes = input.text.toString().toIntOrNull()
+                if (minutes != null && minutes in 1..120) {
+                    setTimerDuration(minutes)
+                } else {
+                    android.widget.Toast.makeText(this, getString(R.string.invalid_time_range), android.widget.Toast.LENGTH_SHORT).show()
+                    // 恢复默认选择
+                    findViewById<android.widget.RadioButton>(R.id.rb30min).isChecked = true
+                }
+            }
+            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
+                // 恢复默认选择
+                findViewById<android.widget.RadioButton>(R.id.rb30min).isChecked = true
+            }
+            .setOnCancelListener {
+                // 恢复默认选择
+                findViewById<android.widget.RadioButton>(R.id.rb30min).isChecked = true
+            }
+            .show()
+    }
+
+    private fun resetTimer() {
+        stopTimer()
+        remainingTime = currentTimeInMinutes * 60
+        countdownView.setMaxTime(remainingTime)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         stopTimer()
         whiteNoisePlayer.stop()
+    }
+}
+
+class SettingsActivity : AppCompatActivity() {
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var switchSyncAudio: android.widget.Switch
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.settings_activity)
+        
+        sharedPreferences = getSharedPreferences("FocusFlowPrefs", Context.MODE_PRIVATE)
+        switchSyncAudio = findViewById(R.id.switchSyncAudio)
+        
+        // 加载保存的设置
+        val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
+        switchSyncAudio.isChecked = isSyncEnabled
+        
+        switchSyncAudio.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("sync_audio_with_timer", isChecked).apply()
+        }
     }
 }
