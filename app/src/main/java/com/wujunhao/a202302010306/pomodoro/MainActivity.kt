@@ -12,6 +12,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.media.MediaPlayer
+import android.util.Log
+import android.net.Uri
 
 class CountdownView @JvmOverloads constructor(
     context: Context,
@@ -84,7 +87,78 @@ class CountdownView @JvmOverloads constructor(
     }
 }
 
+class WhiteNoisePlayer(private val context: Context) {
+    private var mediaPlayer: MediaPlayer? = null
+    private var currentNoiseType: NoiseType? = null
+
+    enum class NoiseType(val resourceId: Int) {
+        RAIN(R.raw.rain),
+        WAVE(R.raw.wave)
+    }
+
+    fun play(noiseType: NoiseType) {
+        stop()
+        currentNoiseType = noiseType
+        try {
+            mediaPlayer = MediaPlayer.create(context, noiseType.resourceId)
+            mediaPlayer?.apply {
+                isLooping = true
+                setVolume(0.5f, 0.5f)
+                start()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun pause() {
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                pause()
+            }
+        }
+    }
+
+    fun resume() {
+        mediaPlayer?.apply {
+            if (!isPlaying) {
+                start()
+            }
+        }
+    }
+
+    fun stop() {
+        mediaPlayer?.apply {
+            if (isPlaying) {
+                stop()
+            }
+            release()
+        }
+        mediaPlayer = null
+        currentNoiseType = null
+    }
+
+    fun isPlaying(): Boolean {
+        return mediaPlayer?.isPlaying == true
+    }
+
+    fun getCurrentNoiseType(): NoiseType? {
+        return currentNoiseType
+    }
+
+    fun setVolume(leftVolume: Float, rightVolume: Float) {
+        mediaPlayer?.setVolume(leftVolume, rightVolume)
+    }
+}
+
 class MainActivity : AppCompatActivity() {
+    private lateinit var countdownView: CountdownView
+    private lateinit var whiteNoisePlayer: WhiteNoisePlayer
+    private var isRunning = false
+    private var remainingTime = 25 * 60
+    private var timer: android.os.Handler? = null
+    private var runnable: Runnable? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -93,5 +167,90 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        countdownView = findViewById(R.id.countdownView)
+        whiteNoisePlayer = WhiteNoisePlayer(this)
+
+        val btnStart = findViewById<android.widget.Button>(R.id.btnStart)
+        val btnPause = findViewById<android.widget.Button>(R.id.btnPause)
+        val btnReset = findViewById<android.widget.Button>(R.id.btnReset)
+        val rbRain = findViewById<android.widget.RadioButton>(R.id.rbRain)
+        val rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
+
+        btnStart.setOnClickListener {
+            startTimer()
+        }
+
+        btnPause.setOnClickListener {
+            pauseTimer()
+        }
+
+        btnReset.setOnClickListener {
+            resetTimer()
+        }
+
+        rbRain.setOnClickListener {
+            if (rbRain.isChecked) {
+                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
+            }
+        }
+
+        rbWave.setOnClickListener {
+            if (rbWave.isChecked) {
+                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
+            }
+        }
+    }
+
+    private fun startTimer() {
+        if (!isRunning) {
+            isRunning = true
+            
+            // 自动播放选中的白噪音
+            val rbRain = findViewById<android.widget.RadioButton>(R.id.rbRain)
+            val rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
+            
+            if (rbRain.isChecked) {
+                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
+            } else if (rbWave.isChecked) {
+                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
+            }
+            
+            timer = android.os.Handler(android.os.Looper.getMainLooper())
+            runnable = object : Runnable {
+                override fun run() {
+                    if (remainingTime > 0) {
+                        remainingTime--
+                        countdownView.setCurrentTime(remainingTime)
+                        timer?.postDelayed(this, 1000)
+                    } else {
+                        stopTimer()
+                    }
+                }
+            }
+            timer?.post(runnable!!)
+        }
+    }
+
+    private fun pauseTimer() {
+        isRunning = false
+        timer?.removeCallbacks(runnable!!)
+    }
+
+    private fun resetTimer() {
+        stopTimer()
+        remainingTime = 25 * 60
+        countdownView.setMaxTime(remainingTime)
+    }
+
+    private fun stopTimer() {
+        isRunning = false
+        timer?.removeCallbacks(runnable!!)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopTimer()
+        whiteNoisePlayer.stop()
     }
 }

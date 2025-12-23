@@ -5,9 +5,13 @@
     <string name="reset">重置</string>
     <string name="white_noise">白噪音</string>
     <string name="rain">雨声</string>
-    <string name="forest">林涛</string>
+    <string name="wave">海浪</string>
     <string name="notification_channel_name">番茄钟服务</string>
     <string name="notification_channel_description">番茄钟后台运行通知</string>
     <string name="notification_title">番茄钟运行中</string>
     <string name="notification_text">专注时间：%02d:%02d</string>
+    <string name="settings">设置</string>
+    <string name="sync_countdown_and_audio">是否同步倒计时和音频</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
 </resources>
