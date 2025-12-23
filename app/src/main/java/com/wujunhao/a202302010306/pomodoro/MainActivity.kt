@@ -15,6 +15,8 @@ import androidx.core.view.WindowInsetsCompat
 import android.media.MediaPlayer
 import android.util.Log
 import android.net.Uri
+import android.content.SharedPreferences
+import androidx.appcompat.app.AlertDialog
 
 class CountdownView @JvmOverloads constructor(
     context: Context,
@@ -97,16 +99,23 @@ class WhiteNoisePlayer(private val context: Context) {
     }
 
     fun play(noiseType: NoiseType) {
+        android.util.Log.d("WhiteNoisePlayer", "Playing noise type: ${noiseType.name}")
         stop()
         currentNoiseType = noiseType
         try {
             mediaPlayer = MediaPlayer.create(context, noiseType.resourceId)
+            if (mediaPlayer == null) {
+                android.util.Log.e("WhiteNoisePlayer", "Failed to create MediaPlayer for ${noiseType.name}")
+                return
+            }
             mediaPlayer?.apply {
                 isLooping = true
                 setVolume(0.5f, 0.5f)
                 start()
+                android.util.Log.d("WhiteNoisePlayer", "Successfully started playing ${noiseType.name}")
             }
         } catch (e: Exception) {
+            android.util.Log.e("WhiteNoisePlayer", "Error playing ${noiseType.name}: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -151,6 +160,27 @@ class WhiteNoisePlayer(private val context: Context) {
     }
 }
 
+class SettingsActivity : AppCompatActivity() {
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var switchSyncAudio: android.widget.Switch
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.settings_activity)
+        
+        sharedPreferences = getSharedPreferences("FocusFlowPrefs", Context.MODE_PRIVATE)
+        switchSyncAudio = findViewById(R.id.switchSyncAudio)
+        
+        // 加载保存的设置
+        val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
+        switchSyncAudio.isChecked = isSyncEnabled
+        
+        switchSyncAudio.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("sync_audio_with_timer", isChecked).apply()
+        }
+    }
+}
+
 class MainActivity : AppCompatActivity() {
     private lateinit var countdownView: CountdownView
     private lateinit var whiteNoisePlayer: WhiteNoisePlayer
@@ -158,6 +188,7 @@ class MainActivity : AppCompatActivity() {
     private var remainingTime = 25 * 60
     private var timer: android.os.Handler? = null
     private var runnable: Runnable? = null
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,14 +199,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        sharedPreferences = getSharedPreferences("FocusFlowPrefs", Context.MODE_PRIVATE)
         countdownView = findViewById(R.id.countdownView)
         whiteNoisePlayer = WhiteNoisePlayer(this)
 
         val btnStart = findViewById<android.widget.Button>(R.id.btnStart)
         val btnPause = findViewById<android.widget.Button>(R.id.btnPause)
         val btnReset = findViewById<android.widget.Button>(R.id.btnReset)
+        val btnSettings = findViewById<android.widget.ImageButton>(R.id.btnSettings)
         val rbRain = findViewById<android.widget.RadioButton>(R.id.rbRain)
         val rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
+
+        // 设置默认选中的白噪音
+        rbRain.isChecked = true
 
         btnStart.setOnClickListener {
             startTimer()
@@ -187,6 +223,11 @@ class MainActivity : AppCompatActivity() {
 
         btnReset.setOnClickListener {
             resetTimer()
+        }
+
+        btnSettings.setOnClickListener {
+            val intent = android.content.Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
         }
 
         rbRain.setOnClickListener {
@@ -246,6 +287,12 @@ class MainActivity : AppCompatActivity() {
     private fun stopTimer() {
         isRunning = false
         timer?.removeCallbacks(runnable!!)
+        
+        // 检查是否需要同步停止音频
+        val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
+        if (isSyncEnabled && remainingTime == 0) {
+            whiteNoisePlayer.stop()
+        }
     }
 
     override fun onDestroy() {

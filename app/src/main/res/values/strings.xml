@@ -11,6 +11,7 @@
     <string name="notification_title">番茄钟运行中</string>
     <string name="notification_text">专注时间：%02d:%02d</string>
     <string name="settings">设置</string>
+    <string name="settings_title">设置</string>
     <string name="sync_countdown_and_audio">是否同步倒计时和音频</string>
     <string name="yes">是</string>
     <string name="no">否</string>

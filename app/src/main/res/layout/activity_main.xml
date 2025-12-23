@@ -8,6 +8,18 @@
     android:background="#1E1E2E"
     tools:context=".MainActivity">
 
+    <ImageButton
+        android:id="@+id/btnSettings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="设置"
+        android:src="@android:drawable/ic_menu_preferences"
+        android:tint="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <com.wujunhao.a202302010306.pomodoro.CountdownView
         android:id="@+id/countdownView"
         android:layout_width="300dp"
