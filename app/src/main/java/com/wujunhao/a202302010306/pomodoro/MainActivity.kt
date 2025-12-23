@@ -163,6 +163,8 @@ class WhiteNoisePlayer(private val context: Context) {
 class MainActivity : AppCompatActivity() {
     private lateinit var countdownView: CountdownView
     private lateinit var whiteNoisePlayer: WhiteNoisePlayer
+    private lateinit var btnStartPause: android.widget.Button
+    private lateinit var btnReset: android.widget.Button
     private var isRunning = false
     private var remainingTime = 30 * 60 // 默认30分钟
     private var timer: android.os.Handler? = null
@@ -185,9 +187,8 @@ class MainActivity : AppCompatActivity() {
         countdownView = findViewById(R.id.countdownView)
         whiteNoisePlayer = WhiteNoisePlayer(this)
 
-        val btnStart = findViewById<android.widget.Button>(R.id.btnStart)
-        val btnPause = findViewById<android.widget.Button>(R.id.btnPause)
-        val btnReset = findViewById<android.widget.Button>(R.id.btnReset)
+        btnStartPause = findViewById(R.id.btnStartPause)
+        btnReset = findViewById(R.id.btnReset)
         val btnSettings = findViewById<android.widget.ImageButton>(R.id.btnSettings)
         rbRain = findViewById(R.id.rbRain)
         rbWave = findViewById<android.widget.RadioButton>(R.id.rbWave)
@@ -200,16 +201,27 @@ class MainActivity : AppCompatActivity() {
         rb30min.isChecked = true
         rbRain.isChecked = true
 
-        btnStart.setOnClickListener {
-            startTimer()
-        }
-
-        btnPause.setOnClickListener {
-            pauseTimer()
+        btnStartPause.setOnClickListener {
+            if (!isRunning) {
+                // 如果当前没有运行，开始计时
+                startTimer()
+                if (::btnStartPause.isInitialized) {
+                    btnStartPause.text = getString(R.string.pause)
+                }
+            } else {
+                // 如果当前正在运行，暂停计时
+                pauseTimer()
+                if (::btnStartPause.isInitialized) {
+                    btnStartPause.text = getString(R.string.resume)
+                }
+            }
         }
 
         btnReset.setOnClickListener {
             resetTimer()
+            if (::btnStartPause.isInitialized) {
+                btnStartPause.text = getString(R.string.start)
+            }
         }
 
         btnSettings.setOnClickListener {
@@ -259,23 +271,11 @@ class MainActivity : AppCompatActivity() {
         if (!isRunning) {
             isRunning = true
             
-            val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
-            
-            if (isSyncEnabled) {
-                // 如果同步开启，先尝试恢复被暂停的音频
-                if (whiteNoisePlayer.isPlaying()) {
-                    // 如果已经在播放，不需要重新播放
-                } else {
-                    // 音频被暂停了，恢复播放
-                    whiteNoisePlayer.resume()
-                }
-            } else {
-                // 如果同步未开启，按原来的逻辑播放
-                if (rbRain.isChecked) {
-                    whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
-                } else if (rbWave.isChecked) {
-                    whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
-                }
+            // 播放选中的白噪音（不管同步是否开启，都应该播放音频）
+            if (rbRain.isChecked) {
+                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
+            } else if (rbWave.isChecked) {
+                whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
             }
             
             timer = android.os.Handler(android.os.Looper.getMainLooper())
@@ -287,33 +287,42 @@ class MainActivity : AppCompatActivity() {
                         timer?.postDelayed(this, 1000)
                     } else {
                         stopTimer()
+                        // 倒计时结束时重置按钮文本
+                        if (::btnStartPause.isInitialized) {
+                            btnStartPause.text = getString(R.string.start)
+                        }
                     }
                 }
             }
-            timer?.post(runnable!!)
+            runnable?.let { timer?.post(it) }
         }
     }
 
     private fun pauseTimer() {
         isRunning = false
-        timer?.removeCallbacks(runnable!!)
+        runnable?.let { timer?.removeCallbacks(it) }
         
         // 检查是否启用了同步音频功能
         val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
-        if (isSyncEnabled) {
-            // 同步暂停音频
+        if (isSyncEnabled && whiteNoisePlayer.isPlaying()) {
+            // 同步暂停音频（只有当音频正在播放时才暂停）
             whiteNoisePlayer.pause()
         }
     }
 
     private fun stopTimer() {
         isRunning = false
-        timer?.removeCallbacks(runnable!!)
+        runnable?.let { timer?.removeCallbacks(it) }
+        
+        // 重置按钮文本为"开始"（添加空值保护）
+        if (::btnStartPause.isInitialized) {
+            btnStartPause.text = getString(R.string.start)
+        }
         
         // 检查是否启用了同步音频功能
         val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
-        if (isSyncEnabled) {
-            // 同步停止音频
+        if (isSyncEnabled && whiteNoisePlayer.isPlaying()) {
+            // 同步停止音频（只有当音频正在播放时才停止）
             whiteNoisePlayer.stop()
         }
     }
@@ -360,6 +369,10 @@ class MainActivity : AppCompatActivity() {
         stopTimer()
         remainingTime = currentTimeInMinutes * 60
         countdownView.setMaxTime(remainingTime)
+        // 重置按钮文本为"开始"（添加空值保护）
+        if (::btnStartPause.isInitialized) {
+            btnStartPause.text = getString(R.string.start)
+        }
     }
 
     override fun onDestroy() {

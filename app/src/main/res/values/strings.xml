@@ -3,6 +3,7 @@
     <string name="app_name">Focus Flow</string>
     <string name="start">开始</string>
     <string name="pause">暂停</string>
+    <string name="resume">继续</string>
     <string name="reset">重置</string>
     <string name="white_noise">白噪音</string>
     <string name="rain">雨声</string>
