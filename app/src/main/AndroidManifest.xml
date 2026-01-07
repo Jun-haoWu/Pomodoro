@@ -29,6 +29,10 @@
             android:name=".SettingsActivity"
             android:label="@string/settings_title"
             android:exported="false" />
+        <activity
+            android:name=".RemindersActivity"
+            android:label="@string/view_reminders"
+            android:exported="false" />
     </application>
 
 </manifest>

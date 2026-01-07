@@ -27,4 +27,21 @@
     <string name="minutes_20">20分钟</string>
     <string name="minutes_30">30分钟</string>
     <string name="custom">自定义</string>
+    <string name="reminder">提醒事宜</string>
+    <string name="reminder_time_hint">时间</string>
+    <string name="reminder_text_hint">提醒内容</string>
+    <string name="minutes">分钟</string>
+    <string name="reminder_notification">提醒</string>
+    <string name="invalid_reminder_time">提醒时间必须小于总时长</string>
+    <string name="add_reminder">添加提醒</string>
+    <string name="delete_reminder">删除提醒</string>
+    <string name="no_reminders">暂无提醒，点击下方添加</string>
+    <string name="view_reminders">查看提醒事宜</string>
+    <string name="set_timer">设置倒计时</string>
+    <string name="timer_minutes">倒计时分钟数</string>
+    <string name="minutes_5">5分钟</string>
+    <string name="minutes_15">15分钟</string>
+    <string name="minutes_25">25分钟</string>
+    <string name="minutes_45">45分钟</string>
+    <string name="minutes_60">60分钟</string>
 </resources>

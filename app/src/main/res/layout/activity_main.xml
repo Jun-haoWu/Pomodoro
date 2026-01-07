@@ -24,98 +24,22 @@
         android:id="@+id/countdownView"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/tvTimeLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="@string/time_selection"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/countdownView" />
-
-    <RadioGroup
-        android:id="@+id/radioGroupTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTimeLabel">
-
-        <RadioButton
-            android:id="@+id/rb10min"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/minutes_10"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="10dp" />
-
-        <RadioButton
-            android:id="@+id/rb20min"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/minutes_20"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="10dp" />
-
-        <RadioButton
-            android:id="@+id/rb30min"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/minutes_30"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="10dp" />
-
-        <RadioButton
-            android:id="@+id/rbCustom"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/custom"
-            android:textColor="#FFFFFF" />
-    </RadioGroup>
-
-    <Button
-        android:id="@+id/btnStartPause"
-        android:layout_width="120dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="30dp"
-        android:text="@string/start"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toStartOf="@+id/btnReset"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroupNoise" />
-
-    <Button
-        android:id="@+id/btnReset"
-        android:layout_width="120dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="30dp"
-        android:text="@string/reset"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnStartPause"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroupNoise" />
-
-    <TextView
         android:id="@+id/tvWhiteNoiseLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="40dp"
         android:text="@string/white_noise"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroupTime" />
+        app:layout_constraintTop_toBottomOf="@+id/countdownView" />
 
     <RadioGroup
         android:id="@+id/radioGroupNoise"
@@ -142,5 +66,62 @@
             android:text="@string/wave"
             android:textColor="#FFFFFF" />
     </RadioGroup>
+
+    <Button
+            android:id="@+id/btnReminders"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="40dp"
+            android:text="@string/view_reminders"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/radioGroupNoise" />
+
+        <TextView
+            android:id="@+id/tvNextReminder"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="40dp"
+            android:background="@drawable/rounded_background"
+            android:padding="12dp"
+            android:text="暂无提醒事项"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnReminders" />
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/btnStartPause"
+            android:layout_width="120dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="20dp"
+            android:text="@string/start"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btnReset"
+            android:layout_width="120dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="20dp"
+            android:text="@string/reset"
+            android:textSize="16sp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
