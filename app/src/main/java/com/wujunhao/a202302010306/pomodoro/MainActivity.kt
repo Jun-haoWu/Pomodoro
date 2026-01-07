@@ -215,6 +215,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
+        // 监听提醒更新
+        val reminderPrefs = getSharedPreferences("Reminders", Context.MODE_PRIVATE)
+        reminderPrefs.registerOnSharedPreferenceChangeListener { _, key ->
+            if (key == "lastUpdate") {
+                loadReminders()
+                updateNextReminderDisplay()
+            }
+        }
+        
         countdownView = findViewById(R.id.countdownView)
         whiteNoisePlayer = WhiteNoisePlayer(this)
 
@@ -607,6 +616,13 @@ class MainActivity : AppCompatActivity() {
         tvNextReminder.text = "${timeText}: ${nextReminder.text}"
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 每次回到主界面时重新加载提醒列表
+        loadReminders()
+        updateNextReminderDisplay()
+    }
+    
     override fun onDestroy() {
         super.onDestroy()
         stopTimer()
