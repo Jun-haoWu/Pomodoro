@@ -311,22 +311,6 @@ class MainActivity : AppCompatActivity() {
                         remainingTime--
                         countdownView.setCurrentTime(remainingTime)
                         
-                        // 检查是否到达任何提醒时间
-                        reminders.forEach { reminder ->
-                            if (!reminder.isTriggered) {
-                                // 将提醒时间转换为相对于当前倒计时的秒数
-                                val currentTime = System.currentTimeMillis()
-                                val reminderTimeFromNow = (reminder.time - currentTime) / 1000 // 转换为秒
-                                val totalTimerSeconds = currentTimeInMinutes * 60
-                                val reminderTimeInSeconds = totalTimerSeconds - reminderTimeFromNow
-                                
-                                if (remainingTime <= reminderTimeInSeconds && reminderTimeFromNow > 0) {
-                                    triggerReminder(reminder)
-                                    reminder.isTriggered = true
-                                }
-                            }
-                        }
-                        
                         timer?.postDelayed(this, 1000)
                     } else {
                         stopTimer()
@@ -559,6 +543,17 @@ class MainActivity : AppCompatActivity() {
             reminders.clear()
             reminders.addAll(gson.fromJson(json, type))
         }
+        
+        // 检查是否有提醒需要触发
+        val currentTime = System.currentTimeMillis()
+        val triggeredReminders = reminders.filter { it.time <= currentTime && !it.isTriggered }
+        if (triggeredReminders.isNotEmpty()) {
+            triggeredReminders.forEach { reminder ->
+                triggerReminder(reminder)
+                reminder.isTriggered = true
+            }
+            saveReminders()
+        }
     }
     
     private fun saveReminders() {
@@ -588,6 +583,20 @@ class MainActivity : AppCompatActivity() {
         }
         
         val currentTime = System.currentTimeMillis()
+        
+        // 检查是否有提醒需要触发
+        val triggeredReminders = reminders.filter { it.time <= currentTime && !it.isTriggered }
+        triggeredReminders.forEach { reminder ->
+            triggerReminder(reminder)
+            reminder.isTriggered = true
+        }
+        
+        // 保存更新后的提醒状态
+        if (triggeredReminders.isNotEmpty()) {
+            saveReminders()
+        }
+        
+        // 获取即将到来的提醒
         val upcomingReminders = reminders.filter { it.time > currentTime }
         
         if (upcomingReminders.isEmpty()) {
@@ -597,11 +606,6 @@ class MainActivity : AppCompatActivity() {
         
         val nextReminder = upcomingReminders.minByOrNull { it.time }!!
         val timeRemaining = nextReminder.time - currentTime
-        
-        if (timeRemaining <= 0) {
-            tvNextReminder.text = "提醒: ${nextReminder.text}"
-            return
-        }
         
         val hours = java.util.concurrent.TimeUnit.MILLISECONDS.toHours(timeRemaining)
         val minutes = java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(timeRemaining) % 60

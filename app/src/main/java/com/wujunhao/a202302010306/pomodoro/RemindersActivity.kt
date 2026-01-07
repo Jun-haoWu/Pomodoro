@@ -26,6 +26,10 @@ class RemindersActivity : AppCompatActivity() {
     // 提醒列表
     private val reminders = mutableListOf<Reminder>()
     
+    // 用于实时更新提醒显示的Handler
+    private var reminderHandler: Handler? = null
+    private var reminderRunnable: Runnable? = null
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reminders_activity)
@@ -51,6 +55,25 @@ class RemindersActivity : AppCompatActivity() {
         
         // 初始化提醒列表显示
         updateReminderListDisplay()
+        
+        // 启动提醒时间实时更新
+        startRealTimeUpdate()
+    }
+    
+    private fun startRealTimeUpdate() {
+        reminderHandler = Handler()
+        reminderRunnable = object : Runnable {
+            override fun run() {
+                updateReminderListDisplay()
+                reminderHandler?.postDelayed(this, 1000) // 每秒更新一次
+            }
+        }
+        reminderHandler?.post(reminderRunnable!!)
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        reminderHandler?.removeCallbacks(reminderRunnable!!)
     }
     
     // 添加提醒
@@ -127,7 +150,9 @@ class RemindersActivity : AppCompatActivity() {
             }
             reminderListLayout.addView(noRemindersText)
         } else {
-            reminders.forEach { reminder ->
+            // 按时间排序
+            val sortedReminders = reminders.sortedBy { it.time }
+            sortedReminders.forEach { reminder ->
                 val reminderView = createReminderView(reminder)
                 reminderListLayout.addView(reminderView)
             }
@@ -148,10 +173,17 @@ class RemindersActivity : AppCompatActivity() {
             // 计算相对时间
             val currentTime = System.currentTimeMillis()
             val timeRemaining = reminder.time - currentTime
-            val minutesRemaining = (timeRemaining / (1000 * 60)).toInt()
             
-            text = if (minutesRemaining > 0) {
-                "${minutesRemaining}分钟后"
+            text = if (timeRemaining > 0) {
+                val hours = java.util.concurrent.TimeUnit.MILLISECONDS.toHours(timeRemaining)
+                val minutes = java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(timeRemaining) % 60
+                val seconds = java.util.concurrent.TimeUnit.MILLISECONDS.toSeconds(timeRemaining) % 60
+                
+                when {
+                    hours > 0 -> "${hours}小时${minutes}分钟后"
+                    minutes > 0 -> "${minutes}分钟${seconds}秒后"
+                    else -> "${seconds}秒后"
+                }
             } else {
                 "已过期"
             }
@@ -167,6 +199,17 @@ class RemindersActivity : AppCompatActivity() {
             setTextColor(if (reminder.isTriggered) Color.parseColor("#FF6B6B") else Color.parseColor("#FFFFFF"))
             textSize = 14f
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        
+        // 如果提醒已触发，添加标记
+        if (reminder.isTriggered) {
+            val triggeredIndicator = TextView(this).apply {
+                text = "(已触发)"
+                setTextColor(Color.parseColor("#FF6B6B"))
+                textSize = 12f
+                setPadding(0, 0, 8, 0)
+            }
+            reminderView.addView(triggeredIndicator)
         }
         
         // 删除按钮
