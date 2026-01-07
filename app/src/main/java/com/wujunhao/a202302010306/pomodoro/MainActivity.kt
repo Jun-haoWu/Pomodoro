@@ -245,9 +245,15 @@ class MainActivity : AppCompatActivity() {
         rbRain.isChecked = true
 
         btnStartPause.setOnClickListener {
-            if (!isRunning) {
-                // 如果当前没有运行，显示倒计时设置对话框
+            if (!isRunning && remainingTime == currentTimeInMinutes * 60) {
+                // 如果当前没有运行且未开始计时，显示倒计时设置对话框
                 showTimerSettingDialog()
+            } else if (!isRunning && remainingTime > 0) {
+                // 如果当前没有运行但已开始计时，继续计时
+                resumeTimer()
+                if (::btnStartPause.isInitialized) {
+                    btnStartPause.text = getString(R.string.pause)
+                }
             } else {
                 // 如果当前正在运行，暂停计时
                 pauseTimer()
@@ -292,8 +298,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun startTimer() {
         if (!isRunning) {
-            // 重置所有提醒的触发状态
-            reminders.forEach { it.isTriggered = false }
+            // 只有在全新开始时才重置所有提醒的触发状态
+            if (remainingTime == currentTimeInMinutes * 60) {
+                reminders.forEach { it.isTriggered = false }
+            }
             
             isRunning = true
             
@@ -302,6 +310,42 @@ class MainActivity : AppCompatActivity() {
                 whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
             } else if (rbWave.isChecked) {
                 whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
+            }
+            
+            timer = android.os.Handler(android.os.Looper.getMainLooper())
+            runnable = object : Runnable {
+                override fun run() {
+                    if (remainingTime > 0) {
+                        remainingTime--
+                        countdownView.setCurrentTime(remainingTime)
+                        
+                        timer?.postDelayed(this, 1000)
+                    } else {
+                        stopTimer()
+                        // 倒计时结束时重置按钮文本
+                        if (::btnStartPause.isInitialized) {
+                            btnStartPause.text = getString(R.string.start)
+                        }
+                    }
+                }
+            }
+            runnable?.let { timer?.post(it) }
+        }
+    }
+    
+    private fun resumeTimer() {
+        if (!isRunning) {
+            isRunning = true
+            
+            // 检查是否启用了同步音频功能
+            val isSyncEnabled = sharedPreferences.getBoolean("sync_audio_with_timer", false)
+            if (isSyncEnabled && !whiteNoisePlayer.isPlaying()) {
+                // 如果启用了同步且音频未播放，则恢复音频
+                if (rbRain.isChecked) {
+                    whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.RAIN)
+                } else if (rbWave.isChecked) {
+                    whiteNoisePlayer.play(WhiteNoisePlayer.NoiseType.WAVE)
+                }
             }
             
             timer = android.os.Handler(android.os.Looper.getMainLooper())
@@ -396,9 +440,6 @@ class MainActivity : AppCompatActivity() {
         if (::btnStartPause.isInitialized) {
             btnStartPause.text = getString(R.string.start)
         }
-        
-        // 重置所有提醒的触发状态
-        reminders.forEach { it.isTriggered = false }
         
         // 停止提醒音效
         reminderMediaPlayer?.release()

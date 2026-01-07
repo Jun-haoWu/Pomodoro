@@ -2,6 +2,7 @@ package com.wujunhao.a202302010306.pomodoro
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -52,6 +53,9 @@ class RemindersActivity : AppCompatActivity() {
         btnAddReminder.setOnClickListener {
             addReminder()
         }
+        
+        // 加载保存的提醒
+        loadReminders()
         
         // 初始化提醒列表显示
         updateReminderListDisplay()
